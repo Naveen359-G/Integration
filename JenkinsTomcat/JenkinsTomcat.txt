@@ -1,0 +1,159 @@
+######################################### Integrate Jenkins with Tomcat   ################################################
+----------------------------------------------------------------------------------------------------------------------------
+                                                Pre-requisites   
+=============================================================================================================================
+Create EC2 instace and install Jenkins
+- Install Java
+- set environment variables for the Java
+- reposity where we put our application codes in github
+- Install Maven 
+=============================================================================================================================
+## Install Tomcat server on EC2 instance - integrate tomcat server with jenkis
+pull the application code from the git
+
+-  Connect with EC2 instance
+ sudo su -
+ hostname tomcat  (the IP will change to tomcat)
+ sudo su -  (we can check the changed IP to tomcat)
+ cd /opt
+ wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.58/bin/apache-tomcat-9.0.58.tar.gz
+ ls  (check the downloaded file and extract next)
+ tar -xvzf <filename>
+ mv <filename> tomcat  (to move all the binaries to tomcat)
+ cd tomcat    ( we can see there will be bin, config, lib, logs, temp, webapps,work and some other)
+ cd bin  => ls (it keeps all the binaries for the tomcat- can see lot of files- files to use start/shutdown server )
+ ./startup.sh   (start the server)
+ ----------------------------------------------------------------------------------------------------------------------------
+## Install Java
+ yum install java-jdk-1.8*
+ y  (to confim)
+# set the environment variables for the java
+# After installation -> start the tomcat server
+ 
+ $(dirname $(dirname $(readlink -f $(which javac))))     (command to give path)
+copy the path ->  
+cd ~
+vi .bash_profile  (edit )
+=============================================================================================================================
+# .bash_profile
+
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+         . ~/.bashrc
+fi
+
+# User specific environment and startup program
+JAVA_HOME=<paste the path of the Java>
+PATH=$PATH:$HOME/bin:$JAVA_HOME
+
+export PATH
+=============================================================================================================================
+press esc -> :wq  (save it)
+
+
+ cd /opt  -> cd tomcat  -> ls -> cd bin
+
+ ./startup.sh
+
+Check with the public address 
+Currently we are using tomcat from outside so, we need to change the context.xml (file)
+##
+
+ find / -name context.xml
+#can see some paths- need to edit
+#copy the each path and edit
+ vi <paste the path> (change if finds any loopback address)
+ modify if you find this area in the file  -> <valve className="    edit as ->
+ <!-- <valve className="   (end of the path) --!>    save and exit from the editor
+we did all changes and try to check the tomcat - click on Manage apps
+It will open promt box for sign-in
+# we have to edit and add in xml file
+cd ..  ->ls  -> cd config  ->ls  -> can find the tomcat-user.xml file
+
+vi tomcat-user.xml
+we need to copy all the rules -> edit under the <tomcat-user
+#insert mode
+at the end- write these rules->
+<role rolename="manager-gui"/>
+<role rolename="manager-script"/>
+<role rolename="manager-jmx"/>
+<role rolename="manager-status"/>
+<user username="admin" password="admin" roles="manager-gui", manager-script, manager-jmx, manager-status"/>
+<user username="deployer" password="deployer" roles="manager-script"/>
+<user username="tomcat" password="tomcat" roles="manager-gui"/>
+</tomcat-users>
+ press ESC - > :wq  - save and exit from the editor
+
+==> open the tomcat and Manager app- sign-in with the above credentials
+----------------------------------------------------------------------------------------------------------------------------
+
+#check with the public IP address on the browser- to open jenkins
+##login to the jenkins
+# need to download the Plugin -> Deploy to container  - > install without restart
+#create a new job - < name >
+#selet Maven project
+Description: <give name>
+# add git repository URL
+# Build: - Root POM -> select (pom.xml)
+#Goals and options: Clean install and packages
+#Post steps: select-> Deploy war/Ear to a container
+# WAR/EAR files : **/*.war  (if we know the file name- give it, or else, give the specified path)
+#Container:
+ select- tomact9 - > add credentials- jenkins credentials , and Id= deployer-user ; description: deploying to tomcat
+#Tomcat URL: IPaddress:8080
+
+Apply and SAVE
+
+Click on BUILD NOW
+check build status-->  it will generate the .war file
+
+from confg 
+cd /opt  ->ls   ->cd tomct  -> cd webapps/   ->ls  -> can see the webapp.war file present
+
+check with the publicIP:8080/webapp/
+
+
+==> "Can see the Application run on the tomcat server"
+
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+=============================================================================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
